@@ -1,14 +1,14 @@
 import { Router } from "express";
-import { compare } from "bcryptjs";
-import pkg from 'jsonwebtoken';
-const { sign } = pkg;
+import { register, login, getCurrentUser } from '../controllers/authController.js';
+import auth from '../middleware/auth.js';
 
 const router = Router();
 
-router.post("/register", async (req, res) => {
-});
+// Public routes
+router.post("/register", register);
+router.post("/login", login);
 
-router.post("/login", async (req, res) => {
-});
+// Protected routes
+router.get("/me", auth, getCurrentUser);
 
 export default router;

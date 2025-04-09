@@ -7,9 +7,8 @@ Backend API for the MealMorph recipe management and grocery list application.
 - User authentication and authorization
 - Recipe management (CRUD operations)
 - Dish type classification (veg/non-veg)
-- Food category management
+- Food category management (built-in categories)
 - Grocery list management
-- Category-based organization
 - Image upload support (coming soon)
 
 ## Tech Stack
@@ -43,62 +42,32 @@ Backend API for the MealMorph recipe management and grocery list application.
 ### Authentication
 
 - POST `/api/auth/register` - Register a new user
-  - Body: `{ username, email, password, firstName, lastName }`
+  - Body: `{ email, password, firstName, lastName }`
 - POST `/api/auth/login` - Login user
   - Body: `{ email, password }`
 - GET `/api/auth/me` - Get current user profile
-- PATCH `/api/auth/me` - Update user profile
-  - Body: `{ firstName?, lastName?, password?, preferences? }`
-
-### Categories
-
-- GET `/api/categories` - Get all categories for current user
-- GET `/api/categories/predefined` - Get list of predefined categories
-- GET `/api/categories/:id` - Get a single category
-- POST `/api/categories` - Create a new category
-  - Body: `{ name, description? }`
-  - `name`: Must be one of the predefined categories
-- PUT `/api/categories/:id` - Update a category
-- DELETE `/api/categories/:id` - Delete a category
-
-Predefined Categories:
-- Breakfast
-- Lunch
-- Dinner
-- Desserts
-- Snacks
-- Vegetarian
-- Non-Vegetarian
-- Seafood
-- Soups
-- Smoothies
-- Cake
 
 ### Recipes
 
-- GET `/api/recipes` - Get all recipes (with optional filters)
-  - Query params: 
-    - `category`: Filter by category ID
-    - `user`: Filter by user ID
-    - `dishType`: Filter by dish type ('veg' or 'non-veg')
+- GET `/api/recipes` - Get all recipes
+  - Query params: `category?`, `dishType?`, `difficulty?`
 - GET `/api/recipes/:id` - Get a single recipe
 - POST `/api/recipes` - Create a new recipe
-  - Body: `{ title, description, ingredients[], instructions[], servings, dishType, categories[] }`
+  - Body: `{ title, description, category, cuisine, servings, prepTime, cookTime, ingredients, instructions, calories, difficulty, tags, dishType }`
+  - `category`: Must be one of: Breakfast, Lunch, Dinner, Desserts, Snacks, Vegetarian, Non-Vegetarian, Seafood, Soups, Smoothies, Cake
   - `dishType`: Must be either 'veg' or 'non-veg'
+  - `difficulty`: Must be either 'Easy', 'Medium', or 'Hard'
 - PUT `/api/recipes/:id` - Update a recipe
 - DELETE `/api/recipes/:id` - Delete a recipe
 
 ### Grocery Lists
 
-- GET `/api/grocery-lists` - Get all grocery lists for current user
+- GET `/api/grocery-lists` - Get all grocery lists
 - GET `/api/grocery-lists/:id` - Get a single grocery list
 - POST `/api/grocery-lists` - Create a new grocery list
-  - Body: `{ name, items[] }`
-- POST `/api/grocery-lists/:id/add-recipe` - Add recipe items to grocery list
-  - Body: `{ recipeId, servings }`
-- PATCH `/api/grocery-lists/:id/items/:itemId` - Update grocery list item
-  - Body: `{ checked?, quantity?, unit? }`
-- DELETE `/api/grocery-lists/:id/items/:itemId` - Remove item from grocery list
+- POST `/api/grocery-lists/:id/add-recipe` - Add recipe items to a grocery list
+- PATCH `/api/grocery-lists/:id/items/:itemId` - Update a grocery list item
+- DELETE `/api/grocery-lists/:id/items/:itemId` - Remove an item from a grocery list
 - DELETE `/api/grocery-lists/:id` - Delete a grocery list
 
 ## Authentication

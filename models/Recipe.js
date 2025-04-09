@@ -1,21 +1,5 @@
 import mongoose from 'mongoose';
 
-const ingredientSchema = new mongoose.Schema({
-	name: {
-		type: String,
-		required: true,
-		trim: true
-	},
-	quantity: {
-		type: String,
-		required: true
-	},
-	unit: {
-		type: String,
-		default: ''
-	}
-});
-
 const recipeSchema = new mongoose.Schema({
 	title: {
 		type: String,
@@ -28,9 +12,21 @@ const recipeSchema = new mongoose.Schema({
 		trim: true
 	},
 	category: {
-		type: mongoose.Schema.Types.ObjectId,
-		ref: 'Category',
-		required: true
+		type: String,
+		required: true,
+		enum: [
+			'Breakfast',
+			'Lunch',
+			'Dinner',
+			'Desserts',
+			'Snacks',
+			'Vegetarian',
+			'Non-Vegetarian',
+			'Seafood',
+			'Soups',
+			'Smoothies',
+			'Cake'
+		]
 	},
 	cuisine: {
 		type: String,
@@ -43,17 +39,35 @@ const recipeSchema = new mongoose.Schema({
 		min: 1
 	},
 	prepTime: {
-		type: String,
-		required: true
+		type: Number,
+		required: true,
+		min: 0
 	},
 	cookTime: {
-		type: String,
-		required: true
+		type: Number,
+		required: true,
+		min: 0
 	},
-	ingredients: [ingredientSchema],
+	ingredients: [{
+		name: {
+			type: String,
+			required: true,
+			trim: true
+		},
+		quantity: {
+			type: Number,
+			required: true,
+			min: 0
+		},
+		unit: {
+			type: String,
+			default: ''
+		}
+	}],
 	instructions: [{
 		type: String,
-		required: true
+		required: true,
+		trim: true
 	}],
 	image: {
 		type: String,
@@ -61,7 +75,8 @@ const recipeSchema = new mongoose.Schema({
 	},
 	calories: {
 		type: Number,
-		required: true
+		required: true,
+		min: 0
 	},
 	difficulty: {
 		type: String,
@@ -78,10 +93,13 @@ const recipeSchema = new mongoose.Schema({
 		enum: ['veg', 'non-veg'],
 		default: 'veg'
 	},
-	user: {
-		type: mongoose.Schema.Types.ObjectId,
-		ref: 'User',
-		required: true
+	feedbackCount: {
+		type: Number,
+		default: 0
+	},
+	averageRating: {
+		type: Number,
+		default: 0
 	},
 	createdAt: {
 		type: Date,

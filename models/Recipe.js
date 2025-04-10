@@ -108,7 +108,34 @@ const recipeSchema = new mongoose.Schema({
 	updatedAt: {
 		type: Date,
 		default: Date.now
-	}
+	},
+	nutritionFacts: {
+		calories: { type: Number, unit: 'kcal' },
+		protein: { type: Number, unit: 'g' },
+		carbohydrates: { type: Number, unit: 'g' },
+		totalFat: { type: Number, unit: 'g' },
+		fiber: { type: Number, unit: 'g' },
+		sugar: { type: Number, unit: 'g' },
+		vitamins: {
+			vitaminA: { type: Number, unit: 'IU' },
+			vitaminC: { type: Number, unit: 'mg' },
+			vitaminD: { type: Number, unit: 'IU' },
+			vitaminE: { type: Number, unit: 'mg' },
+			vitaminK: { type: Number, unit: 'mcg' },
+			vitaminB1: { type: Number, unit: 'mg' },
+			vitaminB2: { type: Number, unit: 'mg' },
+			vitaminB3: { type: Number, unit: 'mg' },
+			vitaminB6: { type: Number, unit: 'mg' },
+			vitaminB12: { type: Number, unit: 'mcg' },
+			folate: { type: Number, unit: 'mcg' }
+		}
+	},
+	healthBenefits: [{
+		type: String,
+		required: true
+	}]
+}, {
+	timestamps: true
 });
 
 // Update the updatedAt field before saving

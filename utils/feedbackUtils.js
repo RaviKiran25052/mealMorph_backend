@@ -1,141 +1,49 @@
-import Recipe from '../models/Recipe.js';
 import Feedback from '../models/Feedback.js';
+import Recipe from '../models/Recipe.js';
 
 /**
- * Updates the feedback statistics (count and average rating) for a recipe
- * @param {string} recipeId - The ID of the recipe to update
- * @returns {Promise<Object>} The updated recipe with new statistics
+ * Adds a new feedback for a recipe and updates the recipe's feedback statistics
+ * @param {Object} feedbackData - The feedback data containing recipe, user, name, rating, and description
+ * @returns {Promise<Object>} The created feedback and updated recipe
+ * @throws {Error} If the recipe or user doesn't exist, or if the user has already given feedback
  */
-export const updateRecipeFeedbackStats = async (recipeId) => {
+export const addRecipeFeedback = async (feedbackData) => {
 	try {
-		// Get all feedback for the recipe
-		const allFeedback = await Feedback.find({ recipe: recipeId });
-
-		// Calculate new statistics
-		const feedbackCount = allFeedback.length;
-		const totalRating = allFeedback.reduce((sum, feedback) => sum + feedback.rating, 0);
-		const averageRating = feedbackCount > 0 ? totalRating / feedbackCount : 0;
-
-		// Update the recipe
-		const updatedRecipe = await Recipe.findByIdAndUpdate(
-			recipeId,
-			{
-				feedbackCount,
-				averageRating
-			},
-			{ new: true }
-		);
-
-		return updatedRecipe;
-	} catch (error) {
-		console.error('Error updating recipe feedback statistics:', error);
-		throw error;
-	}
-};
-
-/**
- * Updates recipe statistics when a new feedback is added
- * @param {string} recipeId - The ID of the recipe
- * @param {number} newRating - The rating from the new feedback
- * @returns {Promise<Object>} The updated recipe with new statistics
- */
-export const addFeedbackToRecipe = async (recipeId, newRating) => {
-	try {
-		const recipe = await Recipe.findById(recipeId);
+		// Check if recipe exists
+		const recipe = await Recipe.findById(feedbackData.recipe);
 		if (!recipe) {
 			throw new Error('Recipe not found');
 		}
 
-		// Calculate new average rating
-		const newCount = recipe.feedbackCount + 1;
-		const newAverage = ((recipe.averageRating * recipe.feedbackCount) + newRating) / newCount;
+		// Create new feedback
+		const feedback = new Feedback(feedbackData);
+		await feedback.save();
+
+		// Update recipe feedback statistics
+		const newCount = recipe.feedback.count + 1;
+		const newAverage = ((recipe.feedback.rating * recipe.feedback.count) + feedbackData.rating) / newCount;
 
 		// Update the recipe
 		const updatedRecipe = await Recipe.findByIdAndUpdate(
-			recipeId,
+			feedbackData.recipe,
 			{
-				feedbackCount: newCount,
-				averageRating: newAverage
+				feedback: {
+					count: newCount,
+					rating: newAverage
+				}
 			},
 			{ new: true }
 		);
 
-		return updatedRecipe;
+		return {
+			feedback,
+			recipe: updatedRecipe
+		};
 	} catch (error) {
-		console.error('Error adding feedback to recipe:', error);
-		throw error;
-	}
-};
-
-/**
- * Updates recipe statistics when a feedback is removed
- * @param {string} recipeId - The ID of the recipe
- * @param {number} removedRating - The rating from the removed feedback
- * @returns {Promise<Object>} The updated recipe with new statistics
- */
-export const removeFeedbackFromRecipe = async (recipeId, removedRating) => {
-	try {
-		const recipe = await Recipe.findById(recipeId);
-		if (!recipe) {
-			throw new Error('Recipe not found');
+		// Handle duplicate feedback error
+		if (error.code === 11000) {
+			throw new Error('You have already given feedback for this recipe');
 		}
-
-		// Calculate new average rating
-		const newCount = recipe.feedbackCount - 1;
-		let newAverage;
-		if (newCount === 0) {
-			newAverage = 0;
-		} else {
-			newAverage = ((recipe.averageRating * recipe.feedbackCount) - removedRating) / newCount;
-		}
-
-		// Update the recipe
-		const updatedRecipe = await Recipe.findByIdAndUpdate(
-			recipeId,
-			{
-				feedbackCount: newCount,
-				averageRating: newAverage
-			},
-			{ new: true }
-		);
-
-		return updatedRecipe;
-	} catch (error) {
-		console.error('Error removing feedback from recipe:', error);
-		throw error;
-	}
-};
-
-/**
- * Updates recipe statistics when a feedback is modified
- * @param {string} recipeId - The ID of the recipe
- * @param {number} oldRating - The old rating
- * @param {number} newRating - The new rating
- * @returns {Promise<Object>} The updated recipe with new statistics
- */
-export const updateFeedbackInRecipe = async (recipeId, oldRating, newRating) => {
-	try {
-		const recipe = await Recipe.findById(recipeId);
-		if (!recipe) {
-			throw new Error('Recipe not found');
-		}
-
-		// Calculate new average rating
-		const totalRating = (recipe.averageRating * recipe.feedbackCount) - oldRating + newRating;
-		const newAverage = totalRating / recipe.feedbackCount;
-
-		// Update the recipe
-		const updatedRecipe = await Recipe.findByIdAndUpdate(
-			recipeId,
-			{
-				averageRating: newAverage
-			},
-			{ new: true }
-		);
-
-		return updatedRecipe;
-	} catch (error) {
-		console.error('Error updating feedback in recipe:', error);
 		throw error;
 	}
 }; 

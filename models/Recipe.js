@@ -31,7 +31,24 @@ const recipeSchema = new mongoose.Schema({
 	cuisine: {
 		type: String,
 		required: true,
-		trim: true
+		trim: true,
+		enum: [
+			'American',
+			'British',
+			'Caribbean',
+			'Chinese',
+			'French',
+			'Greek',
+			'Indian',
+			'Italian',
+			'Japanese',
+			'Korean',
+			'Mexican',
+			'Moroccan',
+			'Spanish',
+			'Thai',
+			'Turkish'
+		]
 	},
 	servings: {
 		type: Number,
@@ -73,11 +90,6 @@ const recipeSchema = new mongoose.Schema({
 		type: String,
 		default: ''
 	},
-	calories: {
-		type: Number,
-		required: true,
-		min: 0
-	},
 	difficulty: {
 		type: String,
 		required: true,
@@ -93,13 +105,15 @@ const recipeSchema = new mongoose.Schema({
 		enum: ['veg', 'non-veg'],
 		default: 'veg'
 	},
-	feedbackCount: {
-		type: Number,
-		default: 0
-	},
-	averageRating: {
-		type: Number,
-		default: 0
+	feedback: {
+		count: {
+			type: Number,
+			default: 0
+		},
+		rating: {
+			type: Number,
+			default: 0
+		}
 	},
 	createdAt: {
 		type: Date,
@@ -116,19 +130,22 @@ const recipeSchema = new mongoose.Schema({
 		totalFat: { type: Number, unit: 'g' },
 		fiber: { type: Number, unit: 'g' },
 		sugar: { type: Number, unit: 'g' },
-		vitamins: {
-			vitaminA: { type: Number, unit: 'IU' },
-			vitaminC: { type: Number, unit: 'mg' },
-			vitaminD: { type: Number, unit: 'IU' },
-			vitaminE: { type: Number, unit: 'mg' },
-			vitaminK: { type: Number, unit: 'mcg' },
-			vitaminB1: { type: Number, unit: 'mg' },
-			vitaminB2: { type: Number, unit: 'mg' },
-			vitaminB3: { type: Number, unit: 'mg' },
-			vitaminB6: { type: Number, unit: 'mg' },
-			vitaminB12: { type: Number, unit: 'mcg' },
-			folate: { type: Number, unit: 'mcg' }
-		}
+		vitamins: [{
+			type: String,
+			enum: [
+				'Vitamin A',
+				'Vitamin C',
+				'Vitamin D',
+				'Vitamin E',
+				'Vitamin K',
+				'Vitamin B1',
+				'Vitamin B2',
+				'Vitamin B3',
+				'Vitamin B6',
+				'Vitamin B12',
+				'Folate'
+			]
+		}]
 	},
 	healthBenefits: [{
 		type: String,

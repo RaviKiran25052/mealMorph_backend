@@ -1,10 +1,5 @@
 import Feedback from '../models/Feedback.js';
-import Recipe from '../models/Recipe.js';
-import {
-	addFeedbackToRecipe,
-	removeFeedbackFromRecipe,
-	updateFeedbackInRecipe
-} from '../utils/feedbackUtils.js';
+import { addRecipeFeedback } from '../utils/feedbackUtils.js';
 
 // Add feedback to a recipe (authenticated users only)
 export const addFeedback = async (req, res) => {
@@ -13,13 +8,7 @@ export const addFeedback = async (req, res) => {
 		const { name, rating, description } = req.body;
 		const userId = req.user._id;
 
-		// Check if recipe exists
-		const recipe = await Recipe.findById(recipeId);
-		if (!recipe) {
-			return res.status(404).json({ message: 'Recipe not found' });
-		}
-
-		// Check if user has already given feedback
+		// Check if user has already given feedback for this recipe
 		const existingFeedback = await Feedback.findOne({
 			recipe: recipeId,
 			user: userId
@@ -29,22 +18,23 @@ export const addFeedback = async (req, res) => {
 			return res.status(400).json({ message: 'You have already given feedback for this recipe' });
 		}
 
-		// Create new feedback
-		const feedback = new Feedback({
+		// Create feedback data
+		const feedbackData = {
 			recipe: recipeId,
 			user: userId,
 			name,
 			rating,
 			description
-		});
+		};
 
-		await feedback.save();
+		// Use the utility function to add feedback and update recipe
+		const result = await addRecipeFeedback(feedbackData);
 
-		// Update recipe feedback statistics using utility function
-		await addFeedbackToRecipe(recipeId, rating);
-
-		res.status(201).json(feedback);
+		res.status(201).json(result.feedback);
 	} catch (error) {
+		if (error.message === 'Recipe not found') {
+			return res.status(404).json({ message: error.message });
+		}
 		res.status(500).json({ message: error.message });
 	}
 };
@@ -63,78 +53,3 @@ export const getRecipeFeedback = async (req, res) => {
 		res.status(500).json({ message: error.message });
 	}
 };
-
-// Get user's feedback for a recipe (authenticated users only)
-export const getUserFeedback = async (req, res) => {
-	try {
-		const { recipeId } = req.params;
-		const userId = req.user._id;
-
-		const feedback = await Feedback.findOne({
-			recipe: recipeId,
-			user: userId
-		});
-
-		res.json(feedback);
-	} catch (error) {
-		res.status(500).json({ message: error.message });
-	}
-};
-
-// Update feedback
-export const updateFeedback = async (req, res) => {
-	try {
-		const { recipeId } = req.params;
-		const { name, rating, description } = req.body;
-		const userId = req.user._id;
-
-		const feedback = await Feedback.findOne({
-			recipe: recipeId,
-			user: userId
-		});
-
-		if (!feedback) {
-			return res.status(404).json({ message: 'Feedback not found' });
-		}
-
-		// Store old rating for statistics update
-		const oldRating = feedback.rating;
-
-		// Update feedback
-		feedback.name = name;
-		feedback.rating = rating;
-		feedback.description = description;
-		await feedback.save();
-
-		// Update recipe statistics using utility function
-		await updateFeedbackInRecipe(recipeId, oldRating, rating);
-
-		res.json(feedback);
-	} catch (error) {
-		res.status(500).json({ message: error.message });
-	}
-};
-
-// Delete feedback
-export const deleteFeedback = async (req, res) => {
-	try {
-		const { recipeId } = req.params;
-		const userId = req.user._id;
-
-		const feedback = await Feedback.findOneAndDelete({
-			recipe: recipeId,
-			user: userId
-		});
-
-		if (!feedback) {
-			return res.status(404).json({ message: 'Feedback not found' });
-		}
-
-		// Update recipe statistics using utility function
-		await removeFeedbackFromRecipe(recipeId, feedback.rating);
-
-		res.json({ message: 'Feedback deleted successfully' });
-	} catch (error) {
-		res.status(500).json({ message: error.message });
-	}
-}; 

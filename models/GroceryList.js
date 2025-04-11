@@ -19,14 +19,6 @@ const groceryListItemSchema = new mongoose.Schema({
 		type: Boolean,
 		default: false
 	},
-	addedDate: {
-		type: Date,
-		default: Date.now
-	},
-	category: {
-		type: String,
-		trim: true
-	},
 	recipe: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: 'Recipe'

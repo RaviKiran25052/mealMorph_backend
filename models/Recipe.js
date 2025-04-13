@@ -79,12 +79,24 @@ const recipeSchema = new mongoose.Schema({
 		unit: {
 			type: String,
 			default: ''
-		}
+		},
+		substitutions: [{
+			type: String,
+			required: true,
+			trim: true
+		}]
 	}],
 	instructions: [{
-		type: String,
-		required: true,
-		trim: true
+		description: {
+			type: String,
+			required: true,
+			trim: true
+		},
+		timers: [{
+			type: String,
+			required: true,
+			trim: true
+		}]
 	}],
 	image: {
 		type: String,

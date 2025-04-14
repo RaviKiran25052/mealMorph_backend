@@ -35,7 +35,6 @@ const recipeSchema = new mongoose.Schema({
 		enum: [
 			'American',
 			'British',
-			'Caribbean',
 			'Chinese',
 			'French',
 			'Greek',
@@ -44,7 +43,6 @@ const recipeSchema = new mongoose.Schema({
 			'Japanese',
 			'Korean',
 			'Mexican',
-			'Moroccan',
 			'Spanish',
 			'Thai',
 			'Turkish'
@@ -92,11 +90,10 @@ const recipeSchema = new mongoose.Schema({
 			required: true,
 			trim: true
 		},
-		timers: [{
-			type: String,
-			required: true,
+		timer: {
+			type: Number,
 			trim: true
-		}]
+		}
 	}],
 	image: {
 		type: String,

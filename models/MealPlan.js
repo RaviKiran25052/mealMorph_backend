@@ -1,5 +1,12 @@
 import mongoose from 'mongoose';
 
+// Create a reusable schema for daily meals
+const dayMealSchema = new mongoose.Schema({
+	breakfast: { type: mongoose.Schema.Types.ObjectId, ref: 'Recipe', default: null },
+	lunch: { type: mongoose.Schema.Types.ObjectId, ref: 'Recipe', default: null },
+	dinner: { type: mongoose.Schema.Types.ObjectId, ref: 'Recipe', default: null }
+}, { _id: false });
+
 const mealPlanSchema = new mongoose.Schema({
 	user: {
 		type: mongoose.Schema.Types.ObjectId,
@@ -7,41 +14,13 @@ const mealPlanSchema = new mongoose.Schema({
 		required: true
 	},
 	meals: {
-		monday: {
-			breakfast: { type: mongoose.Schema.Types.ObjectId, ref: 'Recipe', default: null },
-			lunch: { type: mongoose.Schema.Types.ObjectId, ref: 'Recipe', default: null },
-			dinner: { type: mongoose.Schema.Types.ObjectId, ref: 'Recipe', default: null }
-		},
-		tuesday: {
-			breakfast: { type: mongoose.Schema.Types.ObjectId, ref: 'Recipe', default: null },
-			lunch: { type: mongoose.Schema.Types.ObjectId, ref: 'Recipe', default: null },
-			dinner: { type: mongoose.Schema.Types.ObjectId, ref: 'Recipe', default: null }
-		},
-		wednesday: {
-			breakfast: { type: mongoose.Schema.Types.ObjectId, ref: 'Recipe', default: null },
-			lunch: { type: mongoose.Schema.Types.ObjectId, ref: 'Recipe', default: null },
-			dinner: { type: mongoose.Schema.Types.ObjectId, ref: 'Recipe', default: null }
-		},
-		thursday: {
-			breakfast: { type: mongoose.Schema.Types.ObjectId, ref: 'Recipe', default: null },
-			lunch: { type: mongoose.Schema.Types.ObjectId, ref: 'Recipe', default: null },
-			dinner: { type: mongoose.Schema.Types.ObjectId, ref: 'Recipe', default: null }
-		},
-		friday: {
-			breakfast: { type: mongoose.Schema.Types.ObjectId, ref: 'Recipe', default: null },
-			lunch: { type: mongoose.Schema.Types.ObjectId, ref: 'Recipe', default: null },
-			dinner: { type: mongoose.Schema.Types.ObjectId, ref: 'Recipe', default: null }
-		},
-		saturday: {
-			breakfast: { type: mongoose.Schema.Types.ObjectId, ref: 'Recipe', default: null },
-			lunch: { type: mongoose.Schema.Types.ObjectId, ref: 'Recipe', default: null },
-			dinner: { type: mongoose.Schema.Types.ObjectId, ref: 'Recipe', default: null }
-		},
-		sunday: {
-			breakfast: { type: mongoose.Schema.Types.ObjectId, ref: 'Recipe', default: null },
-			lunch: { type: mongoose.Schema.Types.ObjectId, ref: 'Recipe', default: null },
-			dinner: { type: mongoose.Schema.Types.ObjectId, ref: 'Recipe', default: null }
-		}
+		monday: dayMealSchema,
+		tuesday: dayMealSchema,
+		wednesday: dayMealSchema,
+		thursday: dayMealSchema,
+		friday: dayMealSchema,
+		saturday: dayMealSchema,
+		sunday: dayMealSchema
 	},
 	createdAt: {
 		type: Date,

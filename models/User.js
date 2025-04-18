@@ -32,9 +32,6 @@ const userSchema = new mongoose.Schema({
 		type: String,
 		default: ''
 	},
-	preferences: {
-		dietaryRestrictions: [String]
-	},
 	cookedRecipes: [{
 		recipe: {
 			type: mongoose.Schema.Types.ObjectId,
@@ -43,8 +40,7 @@ const userSchema = new mongoose.Schema({
 		cookedAt: {
 			type: Date,
 			default: Date.now
-		},
-		notes: String
+		}
 	}],
 	favoriteRecipes: [{
 		type: mongoose.Schema.Types.ObjectId,

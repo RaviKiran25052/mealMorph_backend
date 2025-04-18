@@ -1,808 +1,12 @@
-import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import Recipe from './models/Recipe.js';
-import Category from './models/Category.js';
 import User from './models/User.js';
+import Recipe from './models/Recipe.js';
+import connectDB from './config/db.js';
 
 // Load environment variables
 dotenv.config();
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI)
-	.then(() => console.log('Connected to MongoDB'))
-	.catch(err => console.error('MongoDB connection error:', err));
-
-// Sample recipes data
-const recipes = [
-	// Breakfast recipes
-	{
-		title: "Masala Dosa",
-		description: "A crispy South Indian crepe made from fermented rice and lentil batter, filled with spiced potato mixture.",
-		category: "Breakfast",
-		cuisine: "Indian",
-		servings: 4,
-		prepTime: "8 hours",
-		cookTime: "30 mins",
-		ingredients: [
-			{ name: "Rice", quantity: "2", unit: "cups" },
-			{ name: "Urad dal", quantity: "0.5", unit: "cup" },
-			{ name: "Fenugreek seeds", quantity: "1", unit: "tsp" },
-			{ name: "Salt", quantity: "to taste", unit: "" },
-			{ name: "Potatoes", quantity: "4", unit: "medium" },
-			{ name: "Onions", quantity: "2", unit: "medium" },
-			{ name: "Green chilies", quantity: "2", unit: "pieces" },
-			{ name: "Mustard seeds", quantity: "1", unit: "tsp" },
-			{ name: "Curry leaves", quantity: "10", unit: "leaves" },
-			{ name: "Oil", quantity: "2", unit: "tbsp" }
-		],
-		instructions: [
-			"Soak rice and urad dal separately for 6-8 hours",
-			"Grind them together with fenugreek seeds to make a smooth batter",
-			"Ferment the batter overnight",
-			"For potato filling: Boil and mash potatoes",
-			"Sauté onions, green chilies, and spices",
-			"Add mashed potatoes and mix well",
-			"Heat a dosa tawa and spread the batter thinly",
-			"Cook until golden brown, add potato filling",
-			"Fold and serve with coconut chutney and sambar"
-		],
-		image: "masala-dosa.jpg",
-		calories: 350,
-		difficulty: "Medium",
-		tags: ["South Indian", "Fermented", "Crispy"],
-		dishType: "veg"
-	},
-	{
-		title: "Poha",
-		description: "Flattened rice cooked with onions, potatoes, and spices, a popular Maharashtrian breakfast dish.",
-		category: "Breakfast",
-		cuisine: "Indian",
-		servings: 4,
-		prepTime: "15 mins",
-		cookTime: "20 mins",
-		ingredients: [
-			{ name: "Flattened rice (Poha)", quantity: "2", unit: "cups" },
-			{ name: "Onion", quantity: "1", unit: "large" },
-			{ name: "Potato", quantity: "1", unit: "medium" },
-			{ name: "Peanuts", quantity: "0.25", unit: "cup" },
-			{ name: "Green chilies", quantity: "2", unit: "pieces" },
-			{ name: "Curry leaves", quantity: "10", unit: "leaves" },
-			{ name: "Turmeric powder", quantity: "0.5", unit: "tsp" },
-			{ name: "Mustard seeds", quantity: "1", unit: "tsp" },
-			{ name: "Lemon juice", quantity: "1", unit: "tbsp" },
-			{ name: "Coriander leaves", quantity: "2", unit: "tbsp" }
-		],
-		instructions: [
-			"Wash and soak poha for 2-3 minutes",
-			"Drain excess water and set aside",
-			"Heat oil and temper mustard seeds, curry leaves",
-			"Add chopped onions, green chilies, and sauté",
-			"Add diced potatoes and cook until soft",
-			"Add turmeric powder and soaked poha",
-			"Mix gently and cook for 2-3 minutes",
-			"Garnish with lemon juice and coriander leaves",
-			"Serve hot with sev and chutney"
-		],
-		image: "poha.jpg",
-		calories: 280,
-		difficulty: "Easy",
-		tags: ["Maharashtrian", "Quick", "Healthy"],
-		dishType: "veg"
-	},
-	// Lunch recipes
-	{
-		title: "Rajma Chawal",
-		description: "A classic North Indian dish of red kidney beans in a rich, spicy gravy served with rice.",
-		category: "Lunch",
-		cuisine: "Indian",
-		servings: 4,
-		prepTime: "8 hours",
-		cookTime: "45 mins",
-		ingredients: [
-			{ name: "Kidney beans", quantity: "2", unit: "cups" },
-			{ name: "Onion", quantity: "2", unit: "medium" },
-			{ name: "Tomatoes", quantity: "3", unit: "medium" },
-			{ name: "Ginger-garlic paste", quantity: "1", unit: "tbsp" },
-			{ name: "Rajma masala", quantity: "2", unit: "tbsp" },
-			{ name: "Coriander powder", quantity: "1", unit: "tsp" },
-			{ name: "Turmeric powder", quantity: "0.5", unit: "tsp" },
-			{ name: "Cream", quantity: "2", unit: "tbsp" },
-			{ name: "Basmati rice", quantity: "2", unit: "cups" }
-		],
-		instructions: [
-			"Soak kidney beans overnight",
-			"Pressure cook beans until soft",
-			"Sauté onions until golden brown",
-			"Add ginger-garlic paste and tomatoes",
-			"Add spices and cook until oil separates",
-			"Add cooked beans and water",
-			"Simmer for 15-20 minutes",
-			"Add cream and garnish with coriander",
-			"Serve with steamed basmati rice"
-		],
-		image: "rajma-chawal.jpg",
-		calories: 420,
-		difficulty: "Medium",
-		tags: ["Punjabi", "Comfort Food", "Protein Rich"],
-		dishType: "veg"
-	},
-	{
-		title: "Biryani",
-		description: "A fragrant rice dish layered with marinated meat, herbs, and spices, cooked to perfection.",
-		category: "Lunch",
-		cuisine: "Indian",
-		servings: 4,
-		prepTime: "30 mins",
-		cookTime: "60 mins",
-		ingredients: [
-			{ name: "Basmati rice", quantity: "2", unit: "cups" },
-			{ name: "Chicken", quantity: "500", unit: "grams" },
-			{ name: "Yogurt", quantity: "0.5", unit: "cup" },
-			{ name: "Onions", quantity: "3", unit: "large" },
-			{ name: "Ginger-garlic paste", quantity: "2", unit: "tbsp" },
-			{ name: "Biryani masala", quantity: "2", unit: "tbsp" },
-			{ name: "Saffron", quantity: "few", unit: "strands" },
-			{ name: "Mint leaves", quantity: "0.5", unit: "cup" },
-			{ name: "Coriander leaves", quantity: "0.5", unit: "cup" },
-			{ name: "Ghee", quantity: "3", unit: "tbsp" }
-		],
-		instructions: [
-			"Marinate chicken in yogurt and spices",
-			"Soak rice for 30 minutes",
-			"Fry onions until golden brown",
-			"Layer half cooked rice in pot",
-			"Add marinated chicken",
-			"Add fried onions and herbs",
-			"Top with remaining rice",
-			"Add saffron milk and ghee",
-			"Seal and cook on dum for 30 minutes"
-		],
-		image: "biryani.jpg",
-		calories: 550,
-		difficulty: "Hard",
-		tags: ["Hyderabadi", "Festive", "Aromatic"],
-		dishType: "non-veg"
-	},
-	// Dinner recipes
-	{
-		title: "Dal Makhani",
-		description: "A rich and creamy lentil dish made with black lentils and kidney beans, slow-cooked to perfection.",
-		category: "Dinner",
-		cuisine: "Indian",
-		servings: 4,
-		prepTime: "8 hours",
-		cookTime: "60 mins",
-		ingredients: [
-			{ name: "Whole black lentils", quantity: "1", unit: "cup" },
-			{ name: "Red kidney beans", quantity: "0.25", unit: "cup" },
-			{ name: "Onion", quantity: "1", unit: "large" },
-			{ name: "Tomatoes", quantity: "2", unit: "medium" },
-			{ name: "Ginger-garlic paste", quantity: "1", unit: "tbsp" },
-			{ name: "Butter", quantity: "3", unit: "tbsp" },
-			{ name: "Cream", quantity: "0.5", unit: "cup" },
-			{ name: "Garam masala", quantity: "1", unit: "tsp" },
-			{ name: "Kasuri methi", quantity: "1", unit: "tbsp" }
-		],
-		instructions: [
-			"Soak lentils and beans overnight",
-			"Pressure cook until soft",
-			"Sauté onions until golden brown",
-			"Add ginger-garlic paste and tomatoes",
-			"Add cooked lentils and beans",
-			"Simmer for 30-40 minutes",
-			"Add butter and cream",
-			"Finish with garam masala and kasuri methi",
-			"Serve with naan or rice"
-		],
-		image: "dal-makhani.jpg",
-		calories: 380,
-		difficulty: "Medium",
-		tags: ["Punjabi", "Creamy", "Comfort Food"],
-		dishType: "veg"
-	},
-	{
-		title: "Malai Kofta",
-		description: "Deep-fried dumplings made with paneer and potatoes, served in a rich and creamy tomato-based gravy.",
-		category: "Dinner",
-		cuisine: "Indian",
-		servings: 4,
-		prepTime: "30 mins",
-		cookTime: "45 mins",
-		ingredients: [
-			{ name: "Paneer", quantity: "200", unit: "grams" },
-			{ name: "Potatoes", quantity: "2", unit: "medium" },
-			{ name: "Cashew nuts", quantity: "15", unit: "pieces" },
-			{ name: "Onion", quantity: "1", unit: "large" },
-			{ name: "Tomatoes", quantity: "3", unit: "medium" },
-			{ name: "Cream", quantity: "0.5", unit: "cup" },
-			{ name: "Garam masala", quantity: "1", unit: "tsp" },
-			{ name: "Kasuri methi", quantity: "1", unit: "tbsp" },
-			{ name: "Oil", quantity: "for frying", unit: "" }
-		],
-		instructions: [
-			"Boil and mash potatoes",
-			"Grate paneer and mix with potatoes",
-			"Make small balls and deep fry",
-			"Prepare onion-tomato gravy",
-			"Add cream and spices",
-			"Add fried koftas to gravy",
-			"Simmer for 10 minutes",
-			"Garnish with cream and coriander",
-			"Serve with naan or rice"
-		],
-		image: "malai-kofta.jpg",
-		calories: 420,
-		difficulty: "Medium",
-		tags: ["Mughlai", "Rich", "Festive"],
-		dishType: "veg"
-	},
-	// Dessert recipes
-	{
-		title: "Gulab Jamun",
-		description: "Deep-fried milk solids soaked in sugar syrup, flavored with cardamom and rose water.",
-		category: "Desserts",
-		cuisine: "Indian",
-		servings: 4,
-		prepTime: "20 mins",
-		cookTime: "30 mins",
-		ingredients: [
-			{ name: "Khoya", quantity: "200", unit: "grams" },
-			{ name: "All-purpose flour", quantity: "2", unit: "tbsp" },
-			{ name: "Sugar", quantity: "2", unit: "cups" },
-			{ name: "Water", quantity: "2", unit: "cups" },
-			{ name: "Cardamom powder", quantity: "0.5", unit: "tsp" },
-			{ name: "Rose water", quantity: "1", unit: "tsp" },
-			{ name: "Oil", quantity: "for frying", unit: "" }
-		],
-		instructions: [
-			"Mix khoya and flour to make dough",
-			"Make small smooth balls",
-			"Prepare sugar syrup with cardamom",
-			"Heat oil on medium flame",
-			"Fry balls until golden brown",
-			"Soak in warm sugar syrup",
-			"Add rose water for flavor",
-			"Let it rest for 2 hours",
-			"Serve warm or cold"
-		],
-		image: "gulab-jamun.jpg",
-		calories: 350,
-		difficulty: "Medium",
-		tags: ["Festive", "Sweet", "Traditional"],
-		dishType: "veg"
-	},
-	{
-		title: "Rasmalai",
-		description: "Soft cottage cheese dumplings soaked in saffron-flavored thickened milk.",
-		category: "Desserts",
-		cuisine: "Indian",
-		servings: 4,
-		prepTime: "30 mins",
-		cookTime: "45 mins",
-		ingredients: [
-			{ name: "Milk", quantity: "1", unit: "liter" },
-			{ name: "Lemon juice", quantity: "2", unit: "tbsp" },
-			{ name: "Sugar", quantity: "1", unit: "cup" },
-			{ name: "Cardamom powder", quantity: "0.5", unit: "tsp" },
-			{ name: "Saffron", quantity: "few", unit: "strands" },
-			{ name: "Pistachios", quantity: "10", unit: "pieces" },
-			{ name: "Almonds", quantity: "10", unit: "pieces" }
-		],
-		instructions: [
-			"Boil milk and add lemon juice",
-			"Strain to get chenna",
-			"Knead chenna until smooth",
-			"Make small discs",
-			"Prepare sugar syrup",
-			"Cook discs in syrup",
-			"Prepare thickened milk with saffron",
-			"Soak discs in milk",
-			"Garnish with dry fruits"
-		],
-		image: "rasmalai.jpg",
-		calories: 280,
-		difficulty: "Hard",
-		tags: ["Bengali", "Creamy", "Festive"],
-		dishType: "veg"
-	},
-	// Snack recipes
-	{
-		title: "Samosa",
-		description: "Crispy pastry filled with spiced potatoes and peas, a popular Indian street food.",
-		category: "Snacks",
-		cuisine: "Indian",
-		servings: 4,
-		prepTime: "30 mins",
-		cookTime: "30 mins",
-		ingredients: [
-			{ name: "All-purpose flour", quantity: "2", unit: "cups" },
-			{ name: "Potatoes", quantity: "3", unit: "medium" },
-			{ name: "Peas", quantity: "0.5", unit: "cup" },
-			{ name: "Ginger", quantity: "1", unit: "inch" },
-			{ name: "Green chilies", quantity: "2", unit: "pieces" },
-			{ name: "Coriander powder", quantity: "1", unit: "tsp" },
-			{ name: "Garam masala", quantity: "1", unit: "tsp" },
-			{ name: "Oil", quantity: "for frying", unit: "" }
-		],
-		instructions: [
-			"Prepare dough with flour and oil",
-			"Boil and mash potatoes",
-			"Sauté peas with spices",
-			"Mix with mashed potatoes",
-			"Roll dough into thin circles",
-			"Cut into semi-circles",
-			"Fill with potato mixture",
-			"Seal edges and shape",
-			"Deep fry until golden brown"
-		],
-		image: "samosa.jpg",
-		calories: 300,
-		difficulty: "Medium",
-		tags: ["Street Food", "Crispy", "Spicy"],
-		dishType: "veg"
-	},
-	{
-		title: "Pani Puri",
-		description: "Hollow crispy puris filled with spicy and tangy mint-flavored water, a popular street snack.",
-		category: "Snacks",
-		cuisine: "Indian",
-		servings: 4,
-		prepTime: "30 mins",
-		cookTime: "20 mins",
-		ingredients: [
-			{ name: "Semolina", quantity: "1", unit: "cup" },
-			{ name: "All-purpose flour", quantity: "0.5", unit: "cup" },
-			{ name: "Mint leaves", quantity: "1", unit: "cup" },
-			{ name: "Coriander leaves", quantity: "1", unit: "cup" },
-			{ name: "Tamarind", quantity: "50", unit: "grams" },
-			{ name: "Green chilies", quantity: "3", unit: "pieces" },
-			{ name: "Boiled potatoes", quantity: "2", unit: "medium" },
-			{ name: "Chickpeas", quantity: "0.5", unit: "cup" },
-			{ name: "Spices", quantity: "as needed", unit: "" }
-		],
-		instructions: [
-			"Prepare dough with semolina and flour",
-			"Make small puris and deep fry",
-			"Prepare mint-coriander water",
-			"Make tamarind chutney",
-			"Mash potatoes with spices",
-			"Assemble with chickpeas",
-			"Fill puris with potato mixture",
-			"Add mint water and chutney",
-			"Serve immediately"
-		],
-		image: "pani-puri.jpg",
-		calories: 250,
-		difficulty: "Medium",
-		tags: ["Street Food", "Tangy", "Refreshing"],
-		dishType: "veg"
-	},
-	// Vegetarian recipes
-	{
-		title: "Palak Paneer",
-		description: "Fresh spinach purée cooked with cottage cheese cubes and aromatic spices.",
-		category: "Vegetarian",
-		cuisine: "Indian",
-		servings: 4,
-		prepTime: "15 mins",
-		cookTime: "25 mins",
-		ingredients: [
-			{ name: "Paneer", quantity: "200", unit: "grams" },
-			{ name: "Spinach", quantity: "500", unit: "grams" },
-			{ name: "Onion", quantity: "2", unit: "medium" },
-			{ name: "Tomatoes", quantity: "2", unit: "medium" },
-			{ name: "Ginger-garlic paste", quantity: "1", unit: "tbsp" },
-			{ name: "Cumin seeds", quantity: "1", unit: "tsp" },
-			{ name: "Garam masala", quantity: "1", unit: "tsp" },
-			{ name: "Cream", quantity: "2", unit: "tbsp" },
-			{ name: "Oil", quantity: "2", unit: "tbsp" }
-		],
-		instructions: [
-			"Blanch spinach and make puree",
-			"Sauté onions until golden",
-			"Add ginger-garlic paste",
-			"Add tomatoes and spices",
-			"Add spinach puree",
-			"Add paneer cubes",
-			"Simmer for 5 minutes",
-			"Add cream and mix well",
-			"Garnish with cream"
-		],
-		image: "palak-paneer.jpg",
-		calories: 320,
-		difficulty: "Medium",
-		tags: ["North Indian", "Healthy", "Creamy"],
-		dishType: "veg"
-	},
-	{
-		title: "Chana Masala",
-		description: "Chickpeas cooked in a spicy tomato-onion gravy, a protein-rich vegetarian dish.",
-		category: "Vegetarian",
-		cuisine: "Indian",
-		servings: 4,
-		prepTime: "8 hours",
-		cookTime: "30 mins",
-		ingredients: [
-			{ name: "Chickpeas", quantity: "2", unit: "cups" },
-			{ name: "Onion", quantity: "2", unit: "medium" },
-			{ name: "Tomatoes", quantity: "3", unit: "medium" },
-			{ name: "Ginger-garlic paste", quantity: "1", unit: "tbsp" },
-			{ name: "Chana masala powder", quantity: "2", unit: "tbsp" },
-			{ name: "Coriander powder", quantity: "1", unit: "tsp" },
-			{ name: "Turmeric powder", quantity: "0.5", unit: "tsp" },
-			{ name: "Oil", quantity: "2", unit: "tbsp" }
-		],
-		instructions: [
-			"Soak chickpeas overnight",
-			"Pressure cook until soft",
-			"Sauté onions until golden",
-			"Add ginger-garlic paste",
-			"Add tomatoes and spices",
-			"Add cooked chickpeas",
-			"Simmer for 15 minutes",
-			"Garnish with coriander",
-			"Serve with rice or roti"
-		],
-		image: "chana-masala.jpg",
-		calories: 280,
-		difficulty: "Easy",
-		tags: ["North Indian", "Protein Rich", "Spicy"],
-		dishType: "veg"
-	},
-	// Non-vegetarian recipes
-	{
-		title: "Butter Chicken",
-		description: "Tender chicken pieces cooked in a rich, creamy tomato-based gravy.",
-		category: "Non-Vegetarian",
-		cuisine: "Indian",
-		servings: 4,
-		prepTime: "20 mins",
-		cookTime: "40 mins",
-		ingredients: [
-			{ name: "Chicken", quantity: "500", unit: "grams" },
-			{ name: "Yogurt", quantity: "1", unit: "cup" },
-			{ name: "Tomatoes", quantity: "4", unit: "medium" },
-			{ name: "Cashew nuts", quantity: "15", unit: "pieces" },
-			{ name: "Ginger-garlic paste", quantity: "1", unit: "tbsp" },
-			{ name: "Garam masala", quantity: "1", unit: "tsp" },
-			{ name: "Kasuri methi", quantity: "1", unit: "tbsp" },
-			{ name: "Cream", quantity: "0.5", unit: "cup" },
-			{ name: "Butter", quantity: "2", unit: "tbsp" }
-		],
-		instructions: [
-			"Marinate chicken in yogurt and spices",
-			"Grill or bake chicken",
-			"Prepare tomato-cashew gravy",
-			"Add grilled chicken to gravy",
-			"Simmer for 10 minutes",
-			"Add cream and butter",
-			"Finish with kasuri methi",
-			"Garnish with cream",
-			"Serve with naan or rice"
-		],
-		image: "butter-chicken.jpg",
-		calories: 450,
-		difficulty: "Medium",
-		tags: ["Punjabi", "Creamy", "Rich"],
-		dishType: "non-veg"
-	},
-	{
-		title: "Rogan Josh",
-		description: "A Kashmiri-style lamb curry cooked with aromatic spices and yogurt.",
-		category: "Non-Vegetarian",
-		cuisine: "Indian",
-		servings: 4,
-		prepTime: "15 mins",
-		cookTime: "60 mins",
-		ingredients: [
-			{ name: "Lamb", quantity: "500", unit: "grams" },
-			{ name: "Onion", quantity: "2", unit: "medium" },
-			{ name: "Yogurt", quantity: "0.5", unit: "cup" },
-			{ name: "Kashmiri red chili powder", quantity: "1", unit: "tbsp" },
-			{ name: "Ginger powder", quantity: "1", unit: "tsp" },
-			{ name: "Fennel powder", quantity: "1", unit: "tsp" },
-			{ name: "Garam masala", quantity: "1", unit: "tsp" },
-			{ name: "Oil", quantity: "3", unit: "tbsp" }
-		],
-		instructions: [
-			"Marinate lamb in yogurt and spices",
-			"Sauté onions until golden",
-			"Add marinated lamb",
-			"Cook on low heat",
-			"Add water and simmer",
-			"Cook until tender",
-			"Adjust seasoning",
-			"Garnish with coriander",
-			"Serve with rice"
-		],
-		image: "rogan-josh.jpg",
-		calories: 380,
-		difficulty: "Hard",
-		tags: ["Kashmiri", "Spicy", "Aromatic"],
-		dishType: "non-veg"
-	},
-	// Seafood recipes
-	{
-		title: "Fish Curry",
-		description: "A coconut-based fish curry with tamarind and curry leaves.",
-		category: "Seafood",
-		cuisine: "Indian",
-		servings: 4,
-		prepTime: "15 mins",
-		cookTime: "25 mins",
-		ingredients: [
-			{ name: "Fish fillets", quantity: "500", unit: "grams" },
-			{ name: "Coconut milk", quantity: "1", unit: "can" },
-			{ name: "Tamarind paste", quantity: "1", unit: "tbsp" },
-			{ name: "Curry leaves", quantity: "10", unit: "leaves" },
-			{ name: "Mustard seeds", quantity: "1", unit: "tsp" },
-			{ name: "Turmeric powder", quantity: "0.5", unit: "tsp" },
-			{ name: "Red chili powder", quantity: "1", unit: "tsp" },
-			{ name: "Oil", quantity: "2", unit: "tbsp" }
-		],
-		instructions: [
-			"Marinate fish with turmeric and salt",
-			"Prepare coconut milk gravy",
-			"Add tamarind and spices",
-			"Gently add fish pieces",
-			"Simmer until fish is cooked",
-			"Add curry leaves",
-			"Adjust seasoning",
-			"Garnish with coriander",
-			"Serve with rice"
-		],
-		image: "fish-curry.jpg",
-		calories: 320,
-		difficulty: "Medium",
-		tags: ["South Indian", "Tangy", "Creamy"],
-		dishType: "non-veg"
-	},
-	{
-		title: "Prawn Masala",
-		description: "Spicy and flavorful prawns cooked with onions and tomatoes.",
-		category: "Seafood",
-		cuisine: "Indian",
-		servings: 4,
-		prepTime: "15 mins",
-		cookTime: "20 mins",
-		ingredients: [
-			{ name: "Prawns", quantity: "500", unit: "grams" },
-			{ name: "Onion", quantity: "2", unit: "medium" },
-			{ name: "Tomatoes", quantity: "2", unit: "medium" },
-			{ name: "Ginger-garlic paste", quantity: "1", unit: "tbsp" },
-			{ name: "Coriander powder", quantity: "1", unit: "tsp" },
-			{ name: "Turmeric powder", quantity: "0.5", unit: "tsp" },
-			{ name: "Garam masala", quantity: "1", unit: "tsp" },
-			{ name: "Oil", quantity: "2", unit: "tbsp" }
-		],
-		instructions: [
-			"Clean and devein prawns",
-			"Marinate with turmeric and salt",
-			"Sauté onions until golden",
-			"Add ginger-garlic paste",
-			"Add tomatoes and spices",
-			"Add prawns and cook",
-			"Simmer for 5 minutes",
-			"Garnish with coriander",
-			"Serve with rice or roti"
-		],
-		image: "prawn-masala.jpg",
-		calories: 280,
-		difficulty: "Easy",
-		tags: ["Coastal", "Spicy", "Quick"],
-		dishType: "non-veg"
-	},
-	// Soup recipes
-	{
-		title: "Tomato Shorba",
-		description: "A light and tangy Indian-style tomato soup.",
-		category: "Soups",
-		cuisine: "Indian",
-		servings: 4,
-		prepTime: "10 mins",
-		cookTime: "20 mins",
-		ingredients: [
-			{ name: "Tomatoes", quantity: "6", unit: "medium" },
-			{ name: "Onion", quantity: "1", unit: "medium" },
-			{ name: "Ginger", quantity: "1", unit: "inch" },
-			{ name: "Garlic", quantity: "4", unit: "cloves" },
-			{ name: "Cumin seeds", quantity: "1", unit: "tsp" },
-			{ name: "Red chili powder", quantity: "0.5", unit: "tsp" },
-			{ name: "Coriander leaves", quantity: "2", unit: "tbsp" },
-			{ name: "Oil", quantity: "1", unit: "tbsp" }
-		],
-		instructions: [
-			"Blanch and puree tomatoes",
-			"Sauté onions, ginger, garlic",
-			"Add tomato puree",
-			"Add spices and water",
-			"Simmer for 15 minutes",
-			"Strain the soup",
-			"Adjust seasoning",
-			"Garnish with coriander",
-			"Serve hot"
-		],
-		image: "tomato-shorba.jpg",
-		calories: 120,
-		difficulty: "Easy",
-		tags: ["Light", "Tangy", "Healthy"],
-		dishType: "veg"
-	},
-	{
-		title: "Mulligatawny Soup",
-		description: "A spiced lentil soup with coconut milk and vegetables.",
-		category: "Soups",
-		cuisine: "Indian",
-		servings: 4,
-		prepTime: "15 mins",
-		cookTime: "30 mins",
-		ingredients: [
-			{ name: "Lentils", quantity: "0.5", unit: "cup" },
-			{ name: "Carrots", quantity: "2", unit: "medium" },
-			{ name: "Celery", quantity: "2", unit: "stalks" },
-			{ name: "Apple", quantity: "1", unit: "medium" },
-			{ name: "Coconut milk", quantity: "0.5", unit: "cup" },
-			{ name: "Curry powder", quantity: "1", unit: "tbsp" },
-			{ name: "Turmeric powder", quantity: "0.5", unit: "tsp" },
-			{ name: "Oil", quantity: "1", unit: "tbsp" }
-		],
-		instructions: [
-			"Cook lentils until soft",
-			"Sauté vegetables",
-			"Add curry powder",
-			"Add cooked lentils",
-			"Add coconut milk",
-			"Simmer for 15 minutes",
-			"Blend until smooth",
-			"Adjust seasoning",
-			"Serve hot"
-		],
-		image: "mulligatawny.jpg",
-		calories: 180,
-		difficulty: "Medium",
-		tags: ["Creamy", "Spicy", "Comforting"],
-		dishType: "veg"
-	},
-	// Smoothie recipes
-	{
-		title: "Mango Lassi",
-		description: "A creamy yogurt-based drink with sweet mangoes and cardamom.",
-		category: "Smoothies",
-		cuisine: "Indian",
-		servings: 2,
-		prepTime: "5 mins",
-		cookTime: "0 mins",
-		ingredients: [
-			{ name: "Mango", quantity: "2", unit: "medium" },
-			{ name: "Yogurt", quantity: "1", unit: "cup" },
-			{ name: "Milk", quantity: "0.5", unit: "cup" },
-			{ name: "Sugar", quantity: "2", unit: "tbsp" },
-			{ name: "Cardamom powder", quantity: "0.25", unit: "tsp" },
-			{ name: "Ice cubes", quantity: "4", unit: "pieces" }
-		],
-		instructions: [
-			"Peel and chop mango",
-			"Add all ingredients to blender",
-			"Blend until smooth",
-			"Adjust sweetness",
-			"Add ice cubes",
-			"Blend again",
-			"Pour into glasses",
-			"Garnish with mint",
-			"Serve chilled"
-		],
-		image: "mango-lassi.jpg",
-		calories: 220,
-		difficulty: "Easy",
-		tags: ["Refreshing", "Sweet", "Summer"],
-		dishType: "veg"
-	},
-	{
-		title: "Banana Smoothie",
-		description: "A healthy smoothie made with ripe bananas, yogurt, and honey.",
-		category: "Smoothies",
-		cuisine: "Indian",
-		servings: 2,
-		prepTime: "5 mins",
-		cookTime: "0 mins",
-		ingredients: [
-			{ name: "Bananas", quantity: "2", unit: "ripe" },
-			{ name: "Yogurt", quantity: "1", unit: "cup" },
-			{ name: "Honey", quantity: "2", unit: "tbsp" },
-			{ name: "Cinnamon powder", quantity: "0.5", unit: "tsp" },
-			{ name: "Almonds", quantity: "10", unit: "pieces" },
-			{ name: "Ice cubes", quantity: "4", unit: "pieces" }
-		],
-		instructions: [
-			"Peel and chop bananas",
-			"Add all ingredients to blender",
-			"Blend until smooth",
-			"Adjust sweetness",
-			"Add ice cubes",
-			"Blend again",
-			"Pour into glasses",
-			"Garnish with almonds",
-			"Serve chilled"
-		],
-		image: "banana-smoothie.jpg",
-		calories: 250,
-		difficulty: "Easy",
-		tags: ["Healthy", "Energy", "Quick"],
-		dishType: "veg"
-	},
-	// Cake recipes
-	{
-		title: "Gajar Ka Halwa Cake",
-		description: "A fusion dessert combining traditional carrot halwa with modern cake.",
-		category: "Cake",
-		cuisine: "Indian",
-		servings: 8,
-		prepTime: "30 mins",
-		cookTime: "60 mins",
-		ingredients: [
-			{ name: "Carrots", quantity: "500", unit: "grams" },
-			{ name: "All-purpose flour", quantity: "2", unit: "cups" },
-			{ name: "Sugar", quantity: "1.5", unit: "cups" },
-			{ name: "Ghee", quantity: "1", unit: "cup" },
-			{ name: "Milk", quantity: "1", unit: "cup" },
-			{ name: "Cardamom powder", quantity: "1", unit: "tsp" },
-			{ name: "Baking powder", quantity: "1", unit: "tsp" },
-			{ name: "Dry fruits", quantity: "0.5", unit: "cup" }
-		],
-		instructions: [
-			"Grate carrots finely",
-			"Sauté carrots in ghee",
-			"Add milk and cook",
-			"Mix dry ingredients",
-			"Combine with carrot mixture",
-			"Add dry fruits",
-			"Pour into greased pan",
-			"Bake at 180°C",
-			"Cool and serve"
-		],
-		image: "gajar-halwa-cake.jpg",
-		calories: 380,
-		difficulty: "Medium",
-		tags: ["Fusion", "Sweet", "Festive"],
-		dishType: "veg"
-	},
-	{
-		title: "Gulab Jamun Cake",
-		description: "A unique fusion cake inspired by the classic Indian dessert Gulab Jamun.",
-		category: "Cake",
-		cuisine: "Indian",
-		servings: 8,
-		prepTime: "30 mins",
-		cookTime: "45 mins",
-		ingredients: [
-			{ name: "All-purpose flour", quantity: "2", unit: "cups" },
-			{ name: "Khoya", quantity: "200", unit: "grams" },
-			{ name: "Sugar", quantity: "1", unit: "cup" },
-			{ name: "Milk", quantity: "1", unit: "cup" },
-			{ name: "Baking powder", quantity: "1", unit: "tsp" },
-			{ name: "Cardamom powder", quantity: "1", unit: "tsp" },
-			{ name: "Rose water", quantity: "1", unit: "tsp" },
-			{ name: "Ghee", quantity: "0.5", unit: "cup" }
-		],
-		instructions: [
-			"Mix khoya and flour",
-			"Add sugar and milk",
-			"Add baking powder",
-			"Add cardamom and rose water",
-			"Mix well to form batter",
-			"Pour into greased pan",
-			"Bake at 180°C",
-			"Prepare sugar syrup",
-			"Soak cake in syrup"
-		],
-		image: "gulab-jamun-cake.jpg",
-		calories: 400,
-		difficulty: "Medium",
-		tags: ["Fusion", "Sweet", "Rich"],
-		dishType: "veg"
-	}
-];
-
+connectDB();
 // Create a default admin user
 const createDefaultUser = async () => {
 	try {
@@ -825,74 +29,439 @@ const createDefaultUser = async () => {
 		throw error;
 	}
 };
-
-// Create categories
-const createCategories = async () => {
-	const categories = [
-		"Breakfast",
-		"Lunch",
-		"Dinner",
-		"Desserts",
-		"Snacks",
-		"Vegetarian",
-		"Non-Vegetarian",
-		"Seafood",
-		"Soups",
-		"Smoothies",
-		"Cake"
-	];
-
+const seedBreakfastRecipes = async () => {
 	try {
-		const adminUser = await createDefaultUser();
+		// First, find an admin user to associate with the recipes
+		const adminUser = await User.findOne({ role: 'admin' });
 
-		for (const categoryName of categories) {
-			const existingCategory = await Category.findOne({ name: categoryName });
-			if (!existingCategory) {
-				const newCategory = new Category({
-					name: categoryName,
-					user: adminUser._id
-				});
-				await newCategory.save();
-				console.log(`Created category: ${categoryName}`);
-			}
-		}
-	} catch (error) {
-		console.error('Error creating categories:', error);
-		throw error;
-	}
-};
-
-// Seed the database
-const seedDatabase = async () => {
-	try {
-		// Clear existing data
-		await Recipe.deleteMany({});
-		console.log('Cleared existing recipes');
-
-		// Create categories
-		await createCategories();
-		console.log('Created categories');
-
-		// Create recipes
-		const adminUser = await User.findOne({ email: 'admin@mealmorph.com' });
-		for (const recipeData of recipes) {
-			const category = await Category.findOne({ name: recipeData.category });
-			const recipe = new Recipe({
-				...recipeData,
-				user: adminUser._id,
-				category: category._id
-			});
-			await recipe.save();
-			console.log(`Created recipe: ${recipe.title}`);
+		if (!adminUser) {
+			console.log('No admin user found. Please run seed.js first.');
+			process.exit(1);
 		}
 
-		console.log('Database seeded successfully');
+		// Check if recipes already exist to avoid duplicates
+		const existingCount = await Recipe.countDocuments({
+			category: 'Breakfast',
+			cuisine: { $in: ['American', 'Indian', 'Chinese'] }
+		});
+
+		if (existingCount >= 3) {
+			console.log('Breakfast recipes already seeded.');
+			process.exit(0);
+		}
+
+		// American breakfast recipe
+		const americanBreakfast = new Recipe({
+			title: 'Classic American Pancakes',
+			description: 'Fluffy, golden pancakes served with maple syrup and butter. A staple American breakfast that\'s easy to make and always satisfying.',
+			category: 'Breakfast',
+			cuisine: 'American',
+			servings: 4,
+			prepTime: 15,
+			cookTime: 20,
+			ingredients: [
+				{
+					name: 'All-purpose flour',
+					quantity: 2,
+					unit: 'cups',
+					substitutions: ['Whole wheat flour']
+				},
+				{
+					name: 'Sugar',
+					quantity: 3,
+					unit: 'tbsp',
+					substitutions: ['Honey']
+				},
+				{
+					name: 'Baking powder',
+					quantity: 1,
+					unit: 'tbsp',
+					substitutions: ['Baking soda + cream of tartar']
+				},
+				{
+					name: 'Salt',
+					quantity: 0.5,
+					unit: 'tsp',
+					substitutions: ['Sea salt']
+				},
+				{
+					name: 'Milk',
+					quantity: 1.5,
+					unit: 'cups',
+					substitutions: ['Almond milk', 'Oat milk']
+				},
+				{
+					name: 'Eggs',
+					quantity: 2,
+					unit: '',
+					substitutions: ['Flax eggs']
+				},
+				{
+					name: 'Butter',
+					quantity: 3,
+					unit: 'tbsp',
+					substitutions: ['Vegetable oil']
+				},
+				{
+					name: 'Maple syrup',
+					quantity: 0.5,
+					unit: 'cup',
+					substitutions: ['Honey']
+				},
+				{
+					name: 'Fresh berries',
+					quantity: 1,
+					unit: 'cup',
+					substitutions: ['Sliced banana']
+				}
+			],
+			instructions: [
+				{
+					description: 'In a large bowl, whisk together flour, sugar, baking powder, and salt.',
+					timer: null
+				},
+				{
+					description: 'In another bowl, beat the eggs, then add milk and melted butter.',
+					timer: null
+				},
+				{
+					description: 'Pour the wet ingredients into the dry ingredients and stir until just combined (a few lumps are okay).',
+					timer: null
+				},
+				{
+					description: 'Heat a lightly oiled griddle or frying pan over medium-high heat.',
+					timer: null
+				},
+				{
+					description: 'Pour about 1/4 cup of batter onto the griddle for each pancake.',
+					timer: null
+				},
+				{
+					description: 'Cook until bubbles form on the surface and the edges look dry, then flip and cook until golden brown on the other side.',
+					timer: 3
+				},
+				{
+					description: 'Serve hot with maple syrup, butter, and fresh berries.',
+					timer: null
+				}
+			],
+			image: 'https://images.unsplash.com/photo-1528207776546-365bb710ee93?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80',
+			difficulty: 'Easy',
+			tags: ['Pancakes', 'Sweet', 'Classic', 'Family-friendly'],
+			dishType: 'veg',
+			nutritionFacts: {
+				calories: 380,
+				protein: 8,
+				carbohydrates: 58,
+				totalFat: 14,
+				fiber: 2,
+				sugar: 25,
+				vitamins: ['Vitamin A', 'Vitamin D', 'Vitamin B12']
+			},
+			healthBenefits: [
+				'Source of energy from carbohydrates',
+				'Contains essential vitamins and minerals',
+				'Provides protein for muscle maintenance'
+			]
+		});
+
+		// Indian breakfast recipe
+		const indianBreakfast = new Recipe({
+			title: 'Masala Dosa with Sambar',
+			description: 'Crispy fermented rice crepes filled with spiced potato filling, served with sambar and coconut chutney. A popular South Indian breakfast.',
+			category: 'Breakfast',
+			cuisine: 'Indian',
+			servings: 4,
+			prepTime: 25,
+			cookTime: 35,
+			ingredients: [
+				{
+					name: 'Rice',
+					quantity: 2,
+					unit: 'cups',
+					substitutions: ['Rice flour']
+				},
+				{
+					name: 'Urad dal',
+					quantity: 1,
+					unit: 'cup',
+					substitutions: ['Split black gram']
+				},
+				{
+					name: 'Potatoes',
+					quantity: 4,
+					unit: 'medium',
+					substitutions: ['Sweet potatoes']
+				},
+				{
+					name: 'Onion',
+					quantity: 2,
+					unit: 'medium',
+					substitutions: ['Shallots']
+				},
+				{
+					name: 'Green chilies',
+					quantity: 3,
+					unit: '',
+					substitutions: ['Serrano peppers']
+				},
+				{
+					name: 'Mustard seeds',
+					quantity: 1,
+					unit: 'tsp',
+					substitutions: ['Black mustard seeds']
+				},
+				{
+					name: 'Cumin seeds',
+					quantity: 1,
+					unit: 'tsp',
+					substitutions: ['Ground cumin']
+				},
+				{
+					name: 'Curry leaves',
+					quantity: 10,
+					unit: '',
+					substitutions: ['Bay leaves']
+				},
+				{
+					name: 'Turmeric powder',
+					quantity: 0.5,
+					unit: 'tsp',
+					substitutions: ['Fresh turmeric']
+				},
+				{
+					name: 'Ginger',
+					quantity: 1,
+					unit: 'inch',
+					substitutions: ['Ginger paste']
+				},
+				{
+					name: 'Cilantro',
+					quantity: 0.25,
+					unit: 'cup',
+					substitutions: ['Parsley']
+				},
+				{
+					name: 'Oil',
+					quantity: 3,
+					unit: 'tbsp',
+					substitutions: ['Ghee']
+				}
+			],
+			instructions: [
+				{
+					description: 'Soak rice and urad dal separately for 4-6 hours, then drain.',
+					timer: null
+				},
+				{
+					description: 'Grind them separately to a smooth paste, then mix together and let ferment overnight.',
+					timer: null
+				},
+				{
+					description: 'Boil potatoes until tender, then peel and mash them.',
+					timer: 20
+				},
+				{
+					description: 'Heat oil in a pan, add mustard seeds and let them splutter.',
+					timer: null
+				},
+				{
+					description: 'Add cumin seeds, curry leaves, green chilies, and ginger. Sauté until fragrant.',
+					timer: 2
+				},
+				{
+					description: 'Add onions and cook until translucent.',
+					timer: 5
+				},
+				{
+					description: 'Add turmeric powder and mashed potatoes. Mix well and cook for a few minutes.',
+					timer: 5
+				},
+				{
+					description: 'Add salt to taste and garnish with cilantro. This is your potato filling.',
+					timer: null
+				},
+				{
+					description: 'Heat a flat griddle and spread a ladleful of fermented batter in a circular motion.',
+					timer: null
+				},
+				{
+					description: 'Drizzle oil around the edges and cook until golden brown.',
+					timer: 3
+				},
+				{
+					description: 'Place a spoonful of potato filling in the center, fold the dosa over, and serve hot with sambar and coconut chutney.',
+					timer: null
+				}
+			],
+			image: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?ixlib=rb-4.0.3&auto=format&fit=crop&w=1470&q=80',
+			difficulty: 'Medium',
+			tags: ['Dosa', 'South Indian', 'Fermented', 'Spicy'],
+			dishType: 'veg',
+			nutritionFacts: {
+				calories: 450,
+				protein: 12,
+				carbohydrates: 85,
+				totalFat: 8,
+				fiber: 6,
+				sugar: 3,
+				vitamins: ['Vitamin C', 'Vitamin B6', 'Folate']
+			},
+			healthBenefits: [
+				'Rich in complex carbohydrates for sustained energy',
+				'Contains probiotics from fermentation',
+				'Good source of plant-based protein',
+				'High in dietary fiber'
+			]
+		});
+
+		// Chinese breakfast recipe
+		const chineseBreakfast = new Recipe({
+			title: 'Congee with Century Egg',
+			description: 'Silky rice porridge topped with century egg, green onions, and crispy fried shallots. A comforting Chinese breakfast staple.',
+			category: 'Breakfast',
+			cuisine: 'Chinese',
+			servings: 4,
+			prepTime: 15,
+			cookTime: 90,
+			ingredients: [
+				{
+					name: 'Jasmine rice',
+					quantity: 1,
+					unit: 'cup',
+					substitutions: ['Short-grain rice']
+				},
+				{
+					name: 'Chicken broth',
+					quantity: 8,
+					unit: 'cups',
+					substitutions: ['Vegetable broth']
+				},
+				{
+					name: 'Century egg',
+					quantity: 2,
+					unit: '',
+					substitutions: ['Salted duck egg']
+				},
+				{
+					name: 'Green onions',
+					quantity: 4,
+					unit: '',
+					substitutions: ['Chives']
+				},
+				{
+					name: 'Ginger',
+					quantity: 2,
+					unit: 'inch',
+					substitutions: ['Ginger powder']
+				},
+				{
+					name: 'Soy sauce',
+					quantity: 2,
+					unit: 'tbsp',
+					substitutions: ['Tamari']
+				},
+				{
+					name: 'Sesame oil',
+					quantity: 1,
+					unit: 'tsp',
+					substitutions: ['Peanut oil']
+				},
+				{
+					name: 'White pepper',
+					quantity: 0.5,
+					unit: 'tsp',
+					substitutions: ['Black pepper']
+				},
+				{
+					name: 'Fried shallots',
+					quantity: 3,
+					unit: 'tbsp',
+					substitutions: ['Fried garlic']
+				},
+				{
+					name: 'Cilantro',
+					quantity: 0.25,
+					unit: 'cup',
+					substitutions: ['Thai basil']
+				},
+				{
+					name: 'Salt',
+					quantity: 1,
+					unit: 'tsp',
+					substitutions: ['Sea salt']
+				}
+			],
+			instructions: [
+				{
+					description: 'Rinse rice until water runs clear, then drain well.',
+					timer: null
+				},
+				{
+					description: 'In a large pot, combine rice, chicken broth, and sliced ginger.',
+					timer: null
+				},
+				{
+					description: 'Bring to a boil, then reduce heat to low and simmer, partially covered.',
+					timer: 15
+				},
+				{
+					description: 'Stir occasionally to prevent rice from sticking to the bottom of the pot.',
+					timer: null
+				},
+				{
+					description: 'Continue cooking until rice breaks down and porridge becomes creamy and thick (about 1-1.5 hours).',
+					timer: 90
+				},
+				{
+					description: 'Peel and dice century eggs into small cubes.',
+					timer: null
+				},
+				{
+					description: 'Season congee with soy sauce, white pepper, and salt to taste.',
+					timer: null
+				},
+				{
+					description: 'Serve in bowls topped with century egg, sliced green onions, cilantro, fried shallots, and a drizzle of sesame oil.',
+					timer: null
+				}
+			],
+			image: 'https://images.unsplash.com/photo-1623595119496-26d2441e6d76?ixlib=rb-4.0.3&auto=format&fit=crop&w=1374&q=80',
+			difficulty: 'Medium',
+			tags: ['Congee', 'Porridge', 'Comfort food', 'Savory'],
+			dishType: 'non-veg',
+			nutritionFacts: {
+				calories: 280,
+				protein: 14,
+				carbohydrates: 42,
+				totalFat: 6,
+				fiber: 1,
+				sugar: 2,
+				vitamins: ['Vitamin B1', 'Vitamin B3', 'Vitamin E']
+			},
+			healthBenefits: [
+				'Easy to digest for sensitive stomachs',
+				'Good source of energy from complex carbohydrates',
+				'Contains protein for muscle repair',
+				'Rich in minerals and vitamins'
+			]
+		});
+
+		// Save recipes to database
+		await Promise.all([
+			americanBreakfast.save(),
+			indianBreakfast.save(),
+			chineseBreakfast.save()
+		]);
+
+		console.log('Breakfast recipes seeded successfully!');
 		process.exit(0);
 	} catch (error) {
-		console.error('Error seeding database:', error);
+		console.error('Error seeding breakfast recipes:', error);
 		process.exit(1);
 	}
 };
 
-// Run the seed script
-seedDatabase(); 
+// Run the seeding
+createDefaultUser();
+seedBreakfastRecipes();

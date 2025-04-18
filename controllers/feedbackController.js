@@ -1,5 +1,4 @@
 import Feedback from '../models/Feedback.js';
-import { addRecipeFeedback } from '../utils/feedbackUtils.js';
 
 // Add feedback to a recipe (authenticated users only)
 export const addFeedback = async (req, res) => {
@@ -26,9 +25,6 @@ export const addFeedback = async (req, res) => {
 			rating,
 			description
 		};
-
-		// Use the utility function to add feedback and update recipe
-		const result = await addRecipeFeedback(feedbackData);
 
 		res.status(201).json(result.feedback);
 	} catch (error) {

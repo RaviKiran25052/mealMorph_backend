@@ -25,7 +25,10 @@ const recipeSchema = new mongoose.Schema({
 			'Seafood',
 			'Soups',
 			'Smoothies',
-			'Cake'
+			'Cake',
+			'Curries',
+			'Salads',
+			'Beverages',
 		]
 	},
 	cuisine: {
